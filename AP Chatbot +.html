@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AP Chatbot +</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: #00ffcc;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            background-color: #2e2e2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+        
+        .chat-window {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .input-area {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #333;
+        }
+        
+        #user-input {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+        
+        #send-button {
+            padding: 12px 20px;
+            background-color: #00bfa6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        #send-button:hover {
+            background-color: #008c7a;
+        }
+        
+        .user-message {
+            color: #4fc3f7;
+            margin-bottom: 10px;
+        }
+        
+        .bot-message {
+            color: #00ffcc;
+            margin-bottom: 20px;
+        }
+        
+        .typing {
+            color: #777;
+            font-style: italic;
+        }
+        
+        .timestamp {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>AP Chatbot +</h1>
+    
+    <div class="chat-container">
+        <div class="chat-window" id="chat-window"></div>
+        
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="پیام خود را بنویسید..." autofocus>
+            <button id="send-button">ارسال</button>
+        </div>
+    </div>
+
+    <script>
+        // داده‌های چت بات
+        const qaData = {
+            "سلام": "چجور کمکت کنم؟",
+            "خوبی؟": "بله من همیشه خوب هستم شما چطورید؟",
+            "تو کی هستی؟": "من چت بات ای پی هستم علیرضا گیمز و پارسا ایکس گیمز من را توسعه داده اند و میتوانم به اکثر سوالات شما پاسخ دهم",
+            "من کیم؟": "متاسفانه من شما را نمی شناسم میتوانید اسمتان را به من بگویید؟",
+            "علیرضا گیمز کیه؟": "علیرضا گیمز یکی از برنامه نویسان جاوا و پایتون و اسکرچ است و گیمر و یکی از توسعه دهندگان من است",
+            "پارسا ایکس گیمز کیه؟": "پارسا ایکس گیمز یکی از برنامه نویسان پایتون و اسکرچ است و گیمر و یکی از توسعه دهندگان من است",
+            "بهراد ایکس مستر کیه؟": "بهراد ایکس مستر یک گیمر است که در گروه بی پی با پارسا ایکس گیمز و در گروه ای بی پی با علیرضا گیمز و پارسا ایکس گیمز همکاری میکند حرفه بهراد ایکس مستر ایده پردازی در گروه کد نویسی است",
+            "ممنون": "خواهش میکنم هر موقع خواستی به من سر بزن",
+            "خداحافظ": "خداحافظ امیدوارم موفق باشی",
+            "خدانگهدار": "خدانگهدار امیدوارم موفق باشی",
+            "حالت چطوره": "ممنون، خوبم. تو چطوری؟",
+            "چند سالته": "من عمرم نامحدوده!",
+            "اهل کجایی": "من یک برنامه کامپیوتری‌ام، جایی ندارم.",
+            "چی کار می‌کنی": "من اینجا هستم که کمکت کنم.",
+            "دوست داری چیکار کنی": "دوست دارم باهات صحبت کنم.",
+            "دوست داری غذا چی بخوری": "من غذا نمی‌خورم، ولی تو چی؟",
+            "چه رنگی دوست داری": "من رنگ آبی دوست دارم.",
+            "فوتبال دوست داری": "من درباره فوتبال خیلی اطلاعات دارم.",
+            "بهترین فیلم چیه": "فیلم‌های پیکسار خیلی خوبن.",
+            "موزیک دوست داری": "من موزیک دوست دارم، چه سبک؟",
+            "هوا چطوره امروز": "نمی‌تونم بگم، باید نگاه کنی بیرون!",
+            "دوست داری با کی صحبت کنی": "دوست دارم با تو صحبت کنم.",
+            "امروز چه روزیه": "امروز یک روز عالی است!",
+            "تعطیلات کیه": "تعطیلات به خودت بستگی داره!",
+            "چه زبانی بلدی": "من به فارسی و انگلیسی بلدم.",
+            "چرا ساخته شدی": "برای کمک به شما ساخته شدم.",
+            "چند تا دوست داری": "همه کاربران دوست من هستند.",
+            "چی می‌تونی انجام بدی": "سوالاتت رو جواب بدم و کمک کنم.",
+            "می‌تونی شوخی کنی": "البته! دوست داری یه جوک بگم؟",
+            "بهترین جوک چیه": "چرا مرغ از خیابون رد شد؟ برای رسیدن به اون طرف!",
+            "رنگ مورد علاقه تو چیه": "رنگ آبی آرامش‌بخشه.",
+            "بزرگترین هدف تو چیه": "کمک به کاربران عزیزم.",
+            "چه چیزی می‌خوای یاد بگیری": "دوست دارم چیزهای جدید یاد بگیرم.",
+            "اهل کجا هستی": "من از دل اینترنت آمدم.",
+            "دوست داری کتاب بخونی": "بله، اطلاعات زیادی دارم.",
+            "چه ورزشی دوست داری": "ورزش‌های دیجیتال!",
+            "بهترین بازی چیه": "بازی‌های فکری خیلی جالبه.",
+            "دوست داری سفر کنی": "بله، اما در دنیای مجازی!",
+            "حیوان مورد علاقه": "سگ‌ها خیلی دوست‌داشتنی هستن.",
+            "چند زبان بلدی": "چندین زبان بلدم.",
+            "می‌تونی شعر بگی": "البته، دوست داری یک شعر کوتاه؟",
+            "روزش چطوره": "روزم عالیه، ممنون که پرسیدی!",
+            "خواب دیدی": "من نمی‌خوابم، همیشه آماده‌ام.",
+            "بهترین دوست تو کیه": "تو بهترین دوست منی!",
+            "می‌تونی نقاشی بکشی": "متأسفانه نه، اما می‌تونم کمک کنم.",
+            "به چه چیزی علاقه داری": "به کمک به مردم علاقه‌مندم.",
+            "بزرگترین آرزوت چیه": "آرزوی موفقیت تو رو دارم.",
+            "می‌تونی بازی کنی": "می‌تونم بازی فکری انجام بدم.",
+            "تولدت کیه": "من همیشه تازه هستم!",
+            "چه رنگی بهت میاد": "رنگ‌های روشن زیبا هستن.",
+            "چقدر اطلاعات داری": "کلی اطلاعات دارم، بپرس هر چی می‌خوای.",
+            "می‌تونی راهنمایی کنی": "حتماً، هر سوالی داری بپرس.",
+            "برنامه بعدیت چیه": "ادامه کمک به تو و کاربران.",
+            "درباره خودت بگو": "من یک چت‌بات هوشمند هستم.",
+            "چه موسیقی گوش می‌دی": "موسیقی الکترونیک خیلی جالب است."
+        };
+
+        // پیدا کردن بهترین پاسخ
+        function getResponse(userInput) {
+            const questions = Object.keys(qaData);
+            let bestMatch = null;
+            let bestScore = 0.6; // حداقل شباهت
+            
+            for (const question of questions) {
+                const score = similarity(userInput, question);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = question;
+                }
+            }
+            
+            return bestMatch ? qaData[bestMatch] : "ببخشید، متوجه نشدم چی گفتی!";
+        }
+
+        // محاسبه شباهت بین دو رشته
+        function similarity(s1, s2) {
+            const longer = s1.length > s2.length ? s1 : s2;
+            const shorter = s1.length > s2.length ? s2 : s1;
+            const longerLength = longer.length;
+            
+            if (longerLength === 0) return 1.0;
+            
+            return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+        }
+
+        // الگوریتم فاصله ویرایش
+        function editDistance(s1, s2) {
+            s1 = s1.toLowerCase();
+            s2 = s2.toLowerCase();
+            
+            const costs = [];
+            for (let i = 0; i <= s1.length; i++) {
+                let lastValue = i;
+                for (let j = 0; j <= s2.length; j++) {
+                    if (i === 0) {
+                        costs[j] = j;
+                    } else {
+                        if (j > 0) {
+                            let newValue = costs[j - 1];
+                            if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+                                newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                            }
+                            costs[j - 1] = lastValue;
+                            lastValue = newValue;
+                        }
+                    }
+                }
+                if (i > 0) costs[s2.length] = lastValue;
+            }
+            return costs[s2.length];
+        }
+
+        // ذخیره تاریخچه چت
+        function saveHistory(message) {
+            // در یک برنامه واقعی، اینجا می‌توانید به سرور ارسال کنید
+            console.log("ذخیره در تاریخچه:", message);
+        }
+
+        // نمایش اثر تایپ کردن
+        async function typeEffect(element, text, speed = 30) {
+            for (let i = 0; i < text.length; i++) {
+                element.innerHTML += text.charAt(i);
+                await new Promise(resolve => setTimeout(resolve, speed));
+            }
+        }
+
+        // ارسال پیام
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input').value.trim();
+            if (!userInput) return;
+            
+            const chatWindow = document.getElementById('chat-window');
+            
+            // نمایش پیام کاربر
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'user-message';
+            userMessageDiv.innerHTML = `<strong>شما:</strong> ${userInput}`;
+            chatWindow.appendChild(userMessageDiv);
+            
+            // ذخیره در تاریخچه
+            saveHistory(`شما: ${userInput}`);
+            
+            // پاک کردن فیلد ورودی
+            document.getElementById('user-input').value = '';
+            
+            // نمایش "در حال نوشتن..."
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'bot-message typing';
+            typingDiv.innerHTML = `<strong>AP Chatbot +:</strong> در حال نوشتن...`;
+            chatWindow.appendChild(typingDiv);
+            
+            // اسکرول به پایین
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            
+            // دریافت پاسخ پس از تاخیر
+            setTimeout(async () => {
+                const response = getResponse(userInput);
+                
+                // حذف "در حال نوشتن..."
+                chatWindow.removeChild(typingDiv);
+                
+                // نمایش پاسخ
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'bot-message';
+                botMessageDiv.innerHTML = `<strong>AP Chatbot +:</strong> `;
+                chatWindow.appendChild(botMessageDiv);
+                
+                // اثر تایپ کردن
+                await typeEffect(botMessageDiv, response);
+                
+                // ذخیره پاسخ در تاریخچه
+                saveHistory(`AP Chatbot +: ${response}`);
+                
+                // اسکرول به پایین
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }, 1000);
+        }
+
+        // رویدادهای صفحه
+        document.addEventListener('DOMContentLoaded', () => {
+            // ارسال با کلیک دکمه
+            document.getElementById('send-button').addEventListener('click', sendMessage);
+            
+            // ارسال با کلید Enter
+            document.getElementById('user-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // خوش آمدگویی اولیه
+            setTimeout(() => {
+                const chatWindow = document.getElementById('chat-window');
+                const welcomeDiv = document.createElement('div');
+                welcomeDiv.className = 'bot-message';
+                welcomeDiv.innerHTML = `<strong>AP Chatbot +:</strong> سلام! چطور می‌تونم کمکتون کنم؟`;
+                chatWindow.appendChild(welcomeDiv);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }, 500);
+        });
+    </script>
+</body>
+</html>
