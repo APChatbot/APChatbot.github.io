@@ -103,6 +103,17 @@
     </div>
 
     <script>
+
+                    // خوش آمدگویی اولیه
+            setTimeout(() => {
+                const chatWindow = document.getElementById('chat-window');
+                const welcomeDiv = document.createElement('div');
+                welcomeDiv.className = 'bot-message';
+                welcomeDiv.innerHTML = `<strong>AP Chatbot +:</strong> سلام! چطور می‌تونم کمکتون کنم؟`;
+                chatWindow.appendChild(welcomeDiv);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }, 500);
+        });
         // داده‌های چت بات
         const qaData = {
            "سلام": "سلام! چطور می‌تونم کمکت کنم؟",
