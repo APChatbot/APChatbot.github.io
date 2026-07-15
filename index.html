@@ -319,6 +319,11 @@
             return bestMatch ? qaData[bestMatch] : "ببخشید، متوجه نشدم چی گفتی!";
         }
 
+
+        text = text
+        .replace(/[؟?!،,.]/g,"")
+        .replace(/\s+/g," ")
+        .trim();
         // محاسبه شباهت بین دو رشته
         function similarity(s1, s2) {
             const longer = s1.length > s2.length ? s1 : s2;
